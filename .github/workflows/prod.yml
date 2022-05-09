@@ -39,7 +39,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: saanikaj/project_4
+          images: saanikaj/is218_final
 
 
       - name: Build and push
