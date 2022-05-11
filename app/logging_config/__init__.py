@@ -1,4 +1,6 @@
 import logging
+import os
+import datetime
 from logging.config import dictConfig
 
 import flask
@@ -7,75 +9,47 @@ from flask import request, current_app
 from app.logging_config.log_formatters import RequestFormatter
 from app import config
 
-import os
-import datetime
-
 log_con = flask.Blueprint('log_con', __name__)
-
-
-@log_con.before_app_request
-def before_request_logging():
-    current_app.logger.info("Before Request")
-    log = logging.getLogger("myApp")
-    log.info(f"My App Logger activated at {datetime.datetime.now()}")
-
-
-
-@log_con.after_app_request
-def after_request_logging(response):
-    if request.path == '/favicon.ico':
-        return response
-    elif request.path.startswith('/static'):
-        return response
-    elif request.path.startswith('/bootstrap'):
-        return response
-
-    current_app.logger.info("After Request")
-    log = logging.getLogger("myApp")
-    log.info(f"My App Logger activated at {datetime.datetime.now()}")
-
-    log = logging.getLogger("request")
-    log.info(f"My Request Logger activated at {datetime.datetime.now()}")
-
-    log = logging.getLogger("random")
-    log.debug(f"My Random Logger activated at {datetime.datetime.now()}")
-
-    return response
 
 
 # @log_con.before_app_first_request
 # def configure_logging():
 #     logging.config.dictConfig(LOGGING_CONFIG)
 #     log = logging.getLogger("myApp")
-#     log.info("My App Logger")
+#     log.info("Log")
 #
 #     log = logging.getLogger("myerrors")
-#     log.error("This broke")
+#     log.error("Broke")
 #
 #     log = logging.getLogger("debug")
-#     log.debug("Debug Logger")
+#     log.debug("Debug")
 
 
-@log_con.before_app_first_request
-def setup_logs():
-
-    # set the name of the apps log folder to logs
-    logdir = config.Config.LOG_DIR
-    # make a directory if it doesn't exist
-    if not os.path.exists(logdir):
-        os.mkdir(logdir)
-    logging.config.dictConfig(LOGGING_CONFIG)
-
-
+@log_con.before_app_request
+def before_request_logging():
+    current_app.logger.info("Before Request")
     log = logging.getLogger("myApp")
-    log.info("My App Logger")
+    log.info(f"Activated at: {datetime.datetime.now()}")
 
-    current_app.logger.info("myerrors logger is activated")
-    log = logging.getLogger("myerrors")
-    log.error("This broke")
 
-    log = logging.getLogger("debug")
-    log.debug("Debug Logger")
+@log_con.after_app_request
+def after_request_logging(response):
+
+    current_app.logger.info("After Request")
+    log = logging.getLogger("request")
+    log.info(f"activated at: {datetime.datetime.now()}")
+
+    if request.path == '/favicon.ico':
+        log.info(f"Favicon Request: {datetime.datetime.now()}")
+        return response
+    elif request.path.startswith('/static'):
+        log.info(f"Static Request: {datetime.datetime.now()}")
+        return response
+    elif request.path.startswith('/bootstrap'):
+        log.info(f"General Request: {datetime.datetime.now()}")
+        return response
+    return response
+
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -86,7 +60,8 @@ LOGGING_CONFIG = {
         },
         'RequestFormatter': {
             '()': 'app.logging_config.log_formatters.RequestFormatter',
-            'format': '[%(asctime)s] [%(process)d] %(remote_addr)s requested %(url)s [%(levelname)s] in %(module)s: %(message)s'
+            'format': '[%(asctime)s] [%(process)d] %(remote_addr)s requested %(url)s '
+                      '[%(levelname)s] in %(module)s: %(message)s'
         }
     },
     'handlers': {
@@ -138,35 +113,6 @@ LOGGING_CONFIG = {
             'maxBytes': 10000000,
             'backupCount': 5,
         },
-        'file.handler.random': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'standard',
-            'filename': os.path.join(config.Config.LOG_DIR,'random.log'),
-            'maxBytes': 10000000,
-            'backupCount': 5,
-        },
-        'file.handler.debug': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'standard',
-            'filename': os.path.join(config.Config.LOG_DIR,'debug.log'),
-            'maxBytes': 10000000,
-            'backupCount': 5,
-        },
-        'file.handler.flask': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'standard',
-            'filename': os.path.join(config.Config.LOG_DIR,'flask.log'),
-            'maxBytes': 10000000,
-            'backupCount': 5,
-        },
-        'file.handler.updatecsv': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'standard',
-            'filename': os.path.join(config.Config.LOG_DIR, 'updatecsv.log'),
-            'maxBytes': 10000000,
-            'backupCount': 5,
-        },
-
     },
     'loggers': {
         '': {  # root logger
@@ -203,28 +149,6 @@ LOGGING_CONFIG = {
             'handlers': ['file.handler.request'],
             'level': 'DEBUG',
             'propagate': False
-        },
-        'random': {  # if __name__ == '__main__'
-            'handlers': ['file.handler.random'],
-            'level': 'DEBUG',
-            'propagate': False
-        },
-        'debug': {  # if __name__ == '__main__'
-            'handlers': ['file.handler.debug'],
-            'level': 'DEBUG',
-            'propagate': False
-        },
-        'flask': {  # if __name__ == '__main__'
-            'handlers': ['file.handler.flask'],
-            'level': 'DEBUG',
-            'propagate': False
-        },
-        'updatecsv': {  # if __name__ == '__main__'
-            'handlers': ['file.handler.updatecsv'],
-            'level': 'DEBUG',
-            'propagate': False
-        },
-
-
+        }
     }
 }
