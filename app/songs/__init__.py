@@ -8,10 +8,10 @@ from jinja2 import TemplateNotFound
 
 from app.db import db
 from app.db.models import Song
-from app.transactions.forms import csv_upload
+from app.songs.forms import csv_upload
 from werkzeug.utils import secure_filename, redirect
 
-songs = Blueprint('transactions', __name__,
+songs = Blueprint('songs', __name__,
                         template_folder='templates')
 
 @songs.route('/songs', methods=['GET'], defaults={"page": 1})
@@ -22,7 +22,7 @@ def songs_browse(page):
     pagination = Song.query.paginate(page, per_page, error_out=False)
     data = pagination.items
     try:
-        return render_template('browse_transactions.html',data=data,pagination=pagination)
+        return render_template('browse_songs.html',data=data,pagination=pagination)
     except TemplateNotFound:
         abort(404)
 
@@ -46,7 +46,7 @@ def songs_upload():
         current_user.songs = list_of_songs
         db.session.commit()
 
-        return redirect(url_for('transactions.songs_browse'))
+        return redirect(url_for('songs.songs_browse'))
 
     try:
         return render_template('upload.html', form=form)
