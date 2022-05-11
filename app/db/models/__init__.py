@@ -9,26 +9,25 @@ from sqlalchemy_serializer import SerializerMixin
 Base = declarative_base()
 
 location_user = db.Table('location_user', db.Model.metadata,
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
-    db.Column('location_id', db.Integer, db.ForeignKey('locations.id'))
-)
-song_user = db.Table('song_user', db.Model.metadata,
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
-    db.Column('song_id', db.Integer, db.ForeignKey('transactions.id'))
-)
+                         db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
+                         db.Column('location_id', db.Integer, db.ForeignKey('locations.id'))
+                         )
 
-class Song(db.Model,SerializerMixin):
-    __tablename__ = 'transactions'
+
+class Song(db.Model, SerializerMixin):
+    __tablename__ = 'songs'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(300), nullable=True, unique=False)
     artist = db.Column(db.String(300), nullable=True, unique=False)
+    year = db.Column(db.Integer, nullable=True, unique=False)
     genre = db.Column(db.String(300), nullable=True, unique=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user = relationship("User", back_populates="transactions", uselist=False)
+    user = relationship("User", back_populates="songs", uselist=False)
 
-    def __init__(self, title, artist, genre):
+    def __init__(self, title, artist, year, genre):
         self.title = title
         self.artist = artist
+        self.year = year
         self.genre = genre
 
 class Location(db.Model, SerializerMixin):
@@ -59,7 +58,7 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(300), nullable=False, unique=True)
+    password = db.Column(db.String(300), nullable=False)
     about = db.Column(db.String(300), nullable=True, unique=False)
     authenticated = db.Column(db.Boolean, default=False)
     registered_on = db.Column('registered_on', db.DateTime)
@@ -69,13 +68,11 @@ class User(UserMixin, db.Model):
     locations = db.relationship("Location",
                                 secondary=location_user, backref="users")
 
-    # `roles` and `groups` are reserved words that *must* be defined
-    # on the `User` model to use group- or role-based authorization.
-
-    def __init__(self, email, password):
+    def __init__(self, email, password, is_admin):
         self.email = email
         self.password = password
         self.registered_on = datetime.utcnow()
+        self.is_admin = is_admin
 
     def is_authenticated(self):
         return True
