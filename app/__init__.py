@@ -19,7 +19,7 @@ from app.db.models import User
 from app.error_handlers import error_handlers
 from app.logging_config import log_con, LOGGING_CONFIG
 from app.simple_pages import simple_pages
-from app.transactions import songs
+from app.songs import songs
 
 mail = Mail()
 
