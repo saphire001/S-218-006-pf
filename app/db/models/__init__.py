@@ -14,17 +14,17 @@ location_user = db.Table('location_user', db.Model.metadata,
 )
 song_user = db.Table('song_user', db.Model.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
-    db.Column('song_id', db.Integer, db.ForeignKey('songs.id'))
+    db.Column('song_id', db.Integer, db.ForeignKey('transactions.id'))
 )
 
 class Song(db.Model,SerializerMixin):
-    __tablename__ = 'songs'
+    __tablename__ = 'transactions'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(300), nullable=True, unique=False)
     artist = db.Column(db.String(300), nullable=True, unique=False)
     genre = db.Column(db.String(300), nullable=True, unique=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user = relationship("User", back_populates="songs", uselist=False)
+    user = relationship("User", back_populates="transactions", uselist=False)
 
     def __init__(self, title, artist, genre):
         self.title = title
