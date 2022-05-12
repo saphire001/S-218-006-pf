@@ -1,4 +1,5 @@
 """A simple flask web app"""
+import logging
 import os
 
 import flask_login
@@ -19,7 +20,7 @@ from app.error_handlers import error_handlers
 from app.logging_config import log_con, LOGGING_CONFIG
 from app.map import map
 from app.simple_pages import simple_pages
-from app.songs import songs
+from app.transactions import transactions
 
 mail = Mail()
 
@@ -51,7 +52,7 @@ def create_app():
     # these load functionality without a web interface
     app.register_blueprint(log_con)
     app.register_blueprint(error_handlers)
-    app.register_blueprint(songs)
+    app.register_blueprint(transactions)
     app.register_blueprint(map)
     app.context_processor(utility_text_processors)
     # add command function to cli commands

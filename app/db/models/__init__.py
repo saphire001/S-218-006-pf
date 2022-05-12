@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, ForeignKey
+from flask_login import UserMixin
 from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy_serializer import SerializerMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.db import db
-from flask_login import UserMixin
-from sqlalchemy_serializer import SerializerMixin
+
 Base = declarative_base()
 
 location_user = db.Table('location_user', db.Model.metadata,
@@ -14,21 +14,19 @@ location_user = db.Table('location_user', db.Model.metadata,
                          )
 
 
-class Song(db.Model, SerializerMixin):
-    __tablename__ = 'songs'
+class Transactions(db.Model, SerializerMixin):
+    __tablename__ = 'transactions'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(300), nullable=True, unique=False)
-    artist = db.Column(db.String(300), nullable=True, unique=False)
-    year = db.Column(db.Integer, nullable=True, unique=False)
-    genre = db.Column(db.String(300), nullable=True, unique=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user = relationship("User", back_populates="songs", uselist=False)
+    user = relationship("User", back_populates="transactions", uselist=False)
+    amount = db.Column(db.String(300), nullable=True, unique=False)
+    type = db.Column(db.String(300), nullable=True, unique=False)
 
-    def __init__(self, title, artist, year, genre):
-        self.title = title
-        self.artist = artist
-        self.year = year
-        self.genre = genre
+
+    def __init__(self, amount, type):
+        self.amount = amount
+        self.type = type
+
 
 class Location(db.Model, SerializerMixin):
     __tablename__ = 'locations'
@@ -64,9 +62,9 @@ class User(UserMixin, db.Model):
     registered_on = db.Column('registered_on', db.DateTime)
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
     is_admin = db.Column('is_admin', db.Boolean(), nullable=False, server_default='0')
-    songs = db.relationship("Song", back_populates="user", cascade="all, delete")
-    locations = db.relationship("Location",
-                                secondary=location_user, backref="users")
+    transactions = db.relationship("Transactions", back_populates="user", cascade="all, delete")
+    locations = db.relationship("Location", secondary=location_user, backref="users")
+    balance = db.Column(db.Integer, unique=False)
 
     def __init__(self, email, password, is_admin):
         self.email = email
@@ -94,3 +92,12 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.email
+
+    def set_balance(self, new_funds):
+        self.balance = new_funds
+
+    def get_balance(self):
+        return self.balance
+
+    def add_balance(self, new_funds):
+        self.balance = self.balance + new_funds
